@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -32,25 +33,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
-data class MovieCardUiState(
-    val id: Int,
-    val title: String,
-    val overview: String,
-    val releaseDate: String,
-    val rating: Double
-)
+import com.popcorncoders.watchly.model.Movie
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieListScreen(
-    movies: List<MovieCardUiState>,
-    isLoading: Boolean,
+    movies: List<Movie>,
     errorMessage: String? = null,
-    onMovieClick: (MovieCardUiState) -> Unit,
-    onSearchChanged: (String) -> Unit = {}
+    onMovieClick: (Movie) -> Unit,
+    onFavoritesClick: () -> Unit
 ) {
     val searchText = remember { mutableStateOf("") }
 
@@ -69,35 +61,29 @@ fun MovieListScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
+            Button(
+                onClick = onFavoritesClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Go to Favorites")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedTextField(
                 value = searchText.value,
                 onValueChange = {
                     searchText.value = it
-                    onSearchChanged(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Search movies") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search"
-                    )
-                },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             when {
-                isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
                 errorMessage != null -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -109,14 +95,14 @@ fun MovieListScreen(
                             color = MaterialTheme.colorScheme.error
                         )
                     }
-                }
 
+                }
                 movies.isEmpty() -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("No movies found.")
+                        CircularProgressIndicator()
                     }
                 }
 
@@ -140,7 +126,7 @@ fun MovieListScreen(
 
 @Composable
 private fun MovieItemCard(
-    movie: MovieCardUiState,
+    movie: Movie,
     onClick: () -> Unit
 ) {
     ElevatedCard(
@@ -163,7 +149,10 @@ private fun MovieItemCard(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Poster")
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Movie poster placeholder"
+                    )
                 }
             }
 
@@ -178,18 +167,6 @@ private fun MovieItemCard(
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Release Date: ${movie.releaseDate}",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
-                Text(
-                    text = "Rating: ${movie.rating}/10",
-                    style = MaterialTheme.typography.bodySmall
-                )
-
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
@@ -200,32 +177,4 @@ private fun MovieItemCard(
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun MovieListScreenPreview() {
-    val sampleMovies = listOf(
-        MovieCardUiState(
-            id = 1,
-            title = "Interstellar",
-            overview = "A group of explorers travel through a wormhole in space in an attempt to save humanity.",
-            releaseDate = "2014-11-07",
-            rating = 8.6
-        ),
-        MovieCardUiState(
-            id = 2,
-            title = "Inception",
-            overview = "A thief who steals corporate secrets through dream-sharing technology is given an inverse task.",
-            releaseDate = "2010-07-16",
-            rating = 8.8
-        )
-    )
-
-    MovieListScreen(
-        movies = sampleMovies,
-        isLoading = false,
-        onMovieClick = {},
-        onSearchChanged = {}
-    )
 }

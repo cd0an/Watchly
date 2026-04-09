@@ -4,69 +4,77 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.Modifier
-import androidx.compose.material3.Scaffold
-import androidx.compose.foundation.layout.padding
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.popcorncoders.watchly.model.Movie
+import com.popcorncoders.watchly.ui.FavoritesScreen
+import com.popcorncoders.watchly.ui.MovieDetailScreen
+import com.popcorncoders.watchly.ui.MovieListScreen
 import com.popcorncoders.watchly.ui.theme.WatchlyTheme
 import com.popcorncoders.watchly.viewmodel.MovieListViewModel
 
-// Main entry point of the app
 class MainActivity : ComponentActivity() {
 
-    // Creates an instance of the ViewModel
-    // Holds and manages UI-related data
     private val movieListViewModel: MovieListViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Jetpack Compose UI starts
         setContent {
-            // Applies the app's theme
             WatchlyTheme {
-                // This provides basic layout structure & handles things like padding for system UI
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    // Calls MovieList screen and passes:
-                    // 1. ViewModel (data source)
-                    // 2. Padding so content doesn't overlap system UI
-                    MovieListScreen(
-                        viewModel = movieListViewModel,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+
+                val movies by movieListViewModel.movies.observeAsState(emptyList())
+                val error by movieListViewModel.error.observeAsState()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "movie_list"
+                ) {
+                    composable("movie_list") {
+                        MovieListScreen(
+                            movies = movies,
+                            errorMessage = error,
+                            onMovieClick = { movie ->
+                                navController.navigate("movie_detail/${movie.id}")
+                            },
+                            onFavoritesClick = {
+                                navController.navigate("favorites")
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = "movie_detail/{movieId}",
+                        arguments = listOf(
+                            navArgument("movieId") { type = NavType.IntType }
+                        )
+                    ) { backStackEntry ->
+                        val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
+                        val selectedMovie: Movie? = movies.find { it.id == movieId }
+
+                        MovieDetailScreen(
+                            movie = selectedMovie,
+                            onBackClick = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    composable("favorites") {
+                        FavoritesScreen(
+                            onBackClick = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-@Composable
-fun MovieListScreen(
-    viewModel: MovieListViewModel,
-    modifier: Modifier = Modifier
-) {
-    // Observe the LiveData from ViewModel
-    // When data changes, UI auto updates
-    val movies = viewModel.movies.observeAsState(emptyList())
-
-    // Scrollable list
-    LazyColumn {
-        // Loop through each movie in the list
-        items(movies.value) { movie ->
-            // Display each movie title as text
-            Text(
-                text = movie.title, // Comes from API
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-}
-
-
