@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.popcorncoders.watchly.data.local.entity.FavoriteEntity
 import com.popcorncoders.watchly.model.Movie
 import com.popcorncoders.watchly.ui.FavoritesScreen
 import com.popcorncoders.watchly.ui.MovieDetailScreen
@@ -51,7 +52,13 @@ class MainActivity : ComponentActivity() {
                         id = entity.id,
                         title = entity.title,
                         overview = entity.overview,
-                        poster_path = entity.posterPath
+                        poster_path = entity.posterPath,
+                        backdrop_path = entity.backdropPath,
+                        release_date = entity.releaseDate,
+                        vote_average = entity.voteAverage,
+                        vote_count = 0,
+                        popularity = entity.popularity,
+                        genre_ids = emptyList()
                     )
                 }
 

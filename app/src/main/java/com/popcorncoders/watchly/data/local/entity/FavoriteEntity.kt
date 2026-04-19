@@ -9,7 +9,10 @@ data class FavoriteEntity(
     val movieId: Int,
     val title: String,
     val overview: String,
-    val posterPath: String,
+    val posterPath: String?,
+    val backdropPath: String?,
+    val releaseDate: String?,
+    val voteAverage: Double,
     val rating: Int = 0,
     val addedAt: Long = System.currentTimeMillis()
 )

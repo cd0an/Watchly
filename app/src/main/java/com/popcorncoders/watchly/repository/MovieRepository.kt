@@ -12,16 +12,19 @@ class MovieRepository(
     private val movieDao: MovieDao,
     private val favoriteDao: FavoriteDao
 ) {
-    private val apiKey = "8722193d9837f70bd611fb987c977f33"
-
+    // Fetch movies from API and cache them in Room
     suspend fun fetchAndCacheMovies() {
-        val response = apiService.getPopularMovies(apiKey)
+        val response = apiService.getPopularMovies()
         val entities = response.results.map { movie ->
-            MovieEntity(
+            MovieEntity (
                 id = movie.id,
                 title = movie.title,
                 overview = movie.overview,
-                posterPath = movie.poster_path
+                posterPath = movie.poster_path,
+                backdropPath = movie.backdrop_path,
+                releaseDate = movie.release_date,
+                voteAverage = movie.vote_average,
+                popularity = movie.popularity
             )
         }
         movieDao.clearAllMovies()

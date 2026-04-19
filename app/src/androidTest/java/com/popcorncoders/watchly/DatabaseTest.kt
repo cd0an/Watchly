@@ -128,6 +128,58 @@ class DatabaseTest {
     }
 
     @Test
+    fun updateRatingPersistsNewValue() = runBlocking {
+        val favorite = FavoriteEntity(
+            movieId = 550,
+            title = "Fight Club",
+            overview = "...",
+            posterPath = "/test.jpg",
+            rating = 0
+        )
+
+        favoriteDao.addFavorite(favorite)
+        favoriteDao.updateRating(movieId = 550, rating = 4)
+
+        val updated = favoriteDao.getFavoriteByMovieId(550)
+        assertNotNull(updated)
+        assertEquals(4, updated?.rating)
+    }
+
+    @Test
+    fun updateRatingOverwritesPreviousRating() = runBlocking {
+        val favorite = FavoriteEntity(
+            movieId = 680,
+            title = "Pulp Fiction",
+            overview = "...",
+            posterPath = "/test.jpg",
+            rating = 2
+        )
+
+        favoriteDao.addFavorite(favorite)
+        favoriteDao.updateRating(movieId = 680, rating = 5)
+        favoriteDao.updateRating(movieId = 680, rating = 3)
+
+        val finalState = favoriteDao.getFavoriteByMovieId(680)
+        assertEquals(3, finalState?.rating)
+    }
+
+    @Test
+    fun rateMovieInsertsWhenNotFavorited() = runBlocking {
+        val favorite = FavoriteEntity(
+            movieId = 155,
+            title = "The Dark Knight",
+            overview = "...",
+            posterPath = "/test.jpg"
+        )
+
+        favoriteDao.rateMovie(favorite, rating = 5)
+
+        val saved = favoriteDao.getFavoriteByMovieId(155)
+        assertNotNull(saved)
+        assertEquals(5, saved?.rating)
+    }
+
+    @Test
     fun clearAllMovies() = runBlocking {
         val sampleMovies = listOf(
             MovieEntity(id = 550, title = "Fight Club", overview = "...", posterPath = "/test.jpg"),
