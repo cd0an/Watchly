@@ -24,6 +24,12 @@ import com.popcorncoders.watchly.viewmodel.FavoriteViewModel
 import com.popcorncoders.watchly.viewmodel.MovieDetailViewModel
 import com.popcorncoders.watchly.viewmodel.MovieListViewModel
 import com.popcorncoders.watchly.viewmodel.RatingViewModel
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.popcorncoders.watchly.notification.NotificationHelper
 
 class MainActivity : ComponentActivity() {
 
@@ -34,6 +40,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Create notification channel
+        NotificationHelper.createNotificationChannel(this)
+
+        // Request notification permission on Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                )
+            }
+        }
 
         setContent {
             var isDarkMode by rememberSaveable { mutableStateOf(false) }

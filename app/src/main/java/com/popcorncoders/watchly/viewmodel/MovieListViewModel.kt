@@ -10,6 +10,7 @@ import com.popcorncoders.watchly.data.local.entity.MovieEntity
 import com.popcorncoders.watchly.data.remote.RetrofitClient
 import com.popcorncoders.watchly.model.Movie
 import com.popcorncoders.watchly.repository.MovieRepository
+import com.popcorncoders.watchly.notification.NotificationHelper
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 class MovieListViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getDatabase(application)
+    private var notificationShown = false
 
     private val repository = MovieRepository(
         apiService = RetrofitClient.api,
@@ -55,6 +57,15 @@ class MovieListViewModel(application: Application) : AndroidViewModel(applicatio
             repository.getMoviesFromDb().collectLatest { cachedMovies ->
                 _movies.value = cachedMovies
                 Log.d("MovieListViewModel", "Movies from DB: ${cachedMovies.size}")
+
+                // Show notification once movies are loaded
+                if (cachedMovies.isNotEmpty() && !notificationShown) {
+                    notificationShown = true
+                    NotificationHelper.showNewMoviesNotification(
+                        context = getApplication(),
+                        movieCount = cachedMovies.size
+                    )
+                }
             }
         }
     }
